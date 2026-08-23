@@ -18,10 +18,31 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Extrair ZIP e Compilar
+    - name: Extrair ZIP, Corrigir e Compilar
       run: |
         unzip -q *.zip -d projeto_extraido
         cd $(dirname $(find projeto_extraido -name build.gradle.kts | head -n 1))
+
+        # 1. Criar a assinatura digital que faltou
+        keytool -genkey -v -keystore debug.keystore -alias androiddebugkey -storepass android -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+
+        # 2. Descobrir o nome do pacote do app e criar o arquivo do Google que faltou
+        APP_ID=$(grep "applicationId" app/build.gradle.kts | grep -o '"[^"]*"' | tr -d '"' | head -n 1)
+        [ -z "$APP_ID" ] && APP_ID="com.example.app"
+        
+        echo '{
+          "project_info": { "project_number": "123", "project_id": "dummy-pdv" },
+          "client": [ {
+            "client_info": {
+              "mobilesdk_app_id": "1:123:android:456",
+              "android_client_info": { "package_name": "'"$APP_ID"'" }
+            },
+            "api_key": [ { "current_key": "dummy-key" } ]
+          } ],
+          "configuration_version": "1"
+        }' > app/google-services.json
+
+        # 3. Dar a ordem final para fabricar o APK
         gradle assembleDebug
 
     - name: Disponibilizar o APK para Download
