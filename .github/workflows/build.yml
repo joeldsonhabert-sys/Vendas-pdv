@@ -25,6 +25,10 @@ jobs:
         # Vai direto para a pasta principal VERDADEIRA do projeto
         cd $(dirname $(find projeto_extraido -name "settings.gradle*" | head -n 1))
         
+        # Forçar os processos internos do Kotlin a rodarem sem interface gráfica
+        echo "org.gradle.jvmargs=-Xmx4096m -Djava.awt.headless=true" > gradle.properties
+        export JAVA_TOOL_OPTIONS="-Djava.awt.headless=true"
+        
         # 1. Criar a assinatura digital
         keytool -genkey -v -keystore debug.keystore -alias androiddebugkey -storepass android -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
         
@@ -47,8 +51,8 @@ jobs:
           "configuration_version": "1"
         }' > app/google-services.json
         
-        # 3. Dar a ordem final com configuração sem interface gráfica e mais memória
-        gradle assembleDebug --no-daemon -Dorg.gradle.jvmargs="-Xmx4096m -Djava.awt.headless=true"
+        # 3. Ordem final turbinada (com --info para mostrar todos os detalhes ocultos)
+        gradle assembleDebug --no-daemon --info
 
     - name: Disponibilizar o APK para Download
       uses: actions/upload-artifact@v4
