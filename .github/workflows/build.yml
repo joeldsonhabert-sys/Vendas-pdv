@@ -21,14 +21,19 @@ jobs:
     - name: Extrair ZIP, Corrigir e Compilar
       run: |
         unzip -q *.zip -d projeto_extraido
-        cd $(dirname $(find projeto_extraido -name build.gradle.kts | head -n 1))
-
-        # 1. Criar a assinatura digital que faltou
+        
+        # Vai direto para a pasta principal VERDADEIRA do projeto
+        cd $(dirname $(find projeto_extraido -name "settings.gradle*" | head -n 1))
+        
+        # 1. Criar a assinatura digital
         keytool -genkey -v -keystore debug.keystore -alias androiddebugkey -storepass android -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
-
-        # 2. Descobrir o nome do pacote do app e criar o arquivo do Google que faltou
-        APP_ID=$(grep "applicationId" app/build.gradle.kts | grep -o '"[^"]*"' | tr -d '"' | head -n 1)
-        [ -z "$APP_ID" ] && APP_ID="com.example.app"
+        
+        # 2. Descobrir o nome do pacote e criar o arquivo do Google
+        mkdir -p app
+        APP_ID=$(grep "applicationId" app/build.gradle* 2>/dev/null | grep -o '"[^"]*"' | tr -d '"' | head -n 1)
+        if [ -z "$APP_ID" ]; then
+          APP_ID="com.example.app"
+        fi
         
         echo '{
           "project_info": { "project_number": "123", "project_id": "dummy-pdv" },
@@ -41,7 +46,7 @@ jobs:
           } ],
           "configuration_version": "1"
         }' > app/google-services.json
-
+        
         # 3. Dar a ordem final para fabricar o APK
         gradle assembleDebug
 
