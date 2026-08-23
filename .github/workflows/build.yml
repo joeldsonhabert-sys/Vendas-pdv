@@ -47,8 +47,8 @@ jobs:
           "configuration_version": "1"
         }' > app/google-services.json
         
-        # 3. Dar a ordem final para fabricar o APK
-        gradle assembleDebug
+        # 3. Dar a ordem final com configuração sem interface gráfica e mais memória
+        gradle assembleDebug --no-daemon -Dorg.gradle.jvmargs="-Xmx4096m -Djava.awt.headless=true"
 
     - name: Disponibilizar o APK para Download
       uses: actions/upload-artifact@v4
