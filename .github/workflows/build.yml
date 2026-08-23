@@ -76,11 +76,3 @@ jobs:
       with:
         name: app-pdv-pronto
         path: '**/*.apk'
-        # 5. Ordem final de compilação
-        gradle assembleDebug --no-daemon
-
-    - name: Disponibilizar o APK para Download
-      uses: actions/upload-artifact@v4
-      with:
-        name: app-pdv-pronto
-        path: '**/*.apk'
