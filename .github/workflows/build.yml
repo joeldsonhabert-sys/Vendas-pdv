@@ -51,8 +51,17 @@ jobs:
           "configuration_version": "1"
         }' > app/google-services.json
         
-        # 3. Ordem final turbinada (com --info para mostrar todos os detalhes ocultos)
-        gradle assembleDebug --no-daemon --info
+        # 3. Injetar a permissão de câmera no AndroidManifest.xml se ela não existir
+        MANIFEST_PATH=$(find . -name "AndroidManifest.xml" | head -n 1)
+        if [ -f "$MANIFEST_PATH" ]; then
+          if ! grep -q "android.permission.CAMERA" "$MANIFEST_PATH"; then
+            sed -i 's/<manifest /<manifest xmlns:android="http:\/\/schemas.android.com\/apk\/res\/android" /g' "$MANIFEST_PATH"
+            sed -i '/<application/i \    <uses-permission android:name="android.permission.CAMERA" \/>\n    <uses-feature android:name="hardware.camera" android:required="false" \/>' "$MANIFEST_PATH"
+          fi
+        fi
+        
+        # 4. Ordem final de compilação
+        gradle assembleDebug --no-daemon
 
     - name: Disponibilizar o APK para Download
       uses: actions/upload-artifact@v4
