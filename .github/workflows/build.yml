@@ -18,11 +18,10 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Configurar Permissões do Gradle
-      run: chmod +x gradlew
-
-    - name: Compilar APK com Gradle
-      run: ./gradlew assembleDebug --no-daemon
+    - name: Compilar APK com Gradle Global
+      run: |
+        echo "org.gradle.jvmargs=-Xmx4096m -Djava.awt.headless=true" > gradle.properties
+        gradle assembleDebug --no-daemon
 
     - name: Disponibilizar o APK para Download
       uses: actions/upload-artifact@v4
