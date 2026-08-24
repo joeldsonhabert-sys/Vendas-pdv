@@ -18,8 +18,15 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Compilar APK com Gradle Global
+    - name: Encontrar pasta do projeto e Compilar APK
       run: |
+        # Acha onde está o arquivo de configuração do projeto automaticamente
+        PROJECT_DIR=$(dirname $(find . -name "settings.gradle*" | head -n 1))
+        if [ -z "$PROJECT_DIR" ]; then
+          PROJECT_DIR="."
+        fi
+        cd "$PROJECT_DIR"
+        
         echo "org.gradle.jvmargs=-Xmx4096m -Djava.awt.headless=true" > gradle.properties
         gradle assembleDebug --no-daemon
 
@@ -27,4 +34,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: app-pdv-pronto
-        path: app/build/outputs/apk/debug/app-debug.apk
+        path: '**/app/build/outputs/apk/debug/app-debug.apk'
